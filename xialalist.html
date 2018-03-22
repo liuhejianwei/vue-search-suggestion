@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta charset="utf-8" />
+
+    <script type="text/javascript" src="http://kehu.beta.fang.com/Resourse/js/jquery.js?v=4.1.1"></script>
+    <script src="https://cdn.jsdelivr.net/lodash/4.13.1/lodash.js"></script>
+    <script type="text/javascript" src="http://kehu.beta.fang.com/Resourse/js/vue.min.js?v=3.0.0"></script>
+    <script type="text/javascript" src="http://kehu.beta.fang.com/Resourse/js/axios.min.js?v=3.0.0"></script>
+    <script type="text/javascript" src="http://kehu.beta.fang.com/Resourse/js/vue.components.js?v=3.0.0"></script>
+    <link type="text/css" rel="stylesheet" href="http://kehu.beta.fang.com/Resourse/css/bootstrap.min.css" />
+    <script type="text/javascript" src="http://kehu.beta.fang.com/Resourse/js/bootstrap.min.js"></script>
+
+    <style>
+        .colorValue {
+            background: #08c;
+        }
+    </style>
+</head>
+<body>
+    <div id="box">
+        <input v-on:keyup="search($event)" v-model="keyword" v-on:keydown.down="ChangeDown()" v-on:keyup.up="ChangeUp()" v-on:keydown.enter="selectName(nowindex)"/>
+        <div class="dropdown">
+            <ul class="dropdown-menu" role="menu" :style="sty">
+                <li role="presentation" v-for="(item,index) in list">
+                    <span v-on:mouseover="SelectedColor(index)" v-on:click="selectName(index)" :class="{colorValue:index==nowindex}">{{item.UserName}}</span>
+                </li>
+            </ul>
+
+        </div>
+
+    </div>
+
+
+    <script>
+        new Vue({
+            el: '#box',
+            data: {
+                keyword: '',
+                sty:{
+                    'display':'none'
+                },
+                list: [],
+                isSelected: false,
+                nowindex: -1
+            },
+            methods: {
+                SelectedColor: function (ind) {
+                    this.nowindex = ind;
+                },
+                selectName:function(index)
+                {
+                   
+                    if (this.list.length > 0)
+                    {
+                        this.keyword = this.list[index].UserName;
+                        this.sty = { 'display': 'none' }
+                        this.nowindex = -1;
+                    }
+                },
+                ChangeUp:function()
+                {
+                    this.nowindex--;
+                    if(this.nowindex==-1||this.nowindex==-2)
+                    {
+                        this.nowindex = this.list.length-1;
+                    }
+                },
+                ChangeDown:function()
+                {
+                   
+                    this.nowindex++;
+                    if(this.nowindex==this.list.length)
+                    {
+                        this.nowindex = 0;
+                    }
+                },
+                search: _.throttle(function (ev)
+                {
+                    var that = this;
+                    if (that.keyword == "")
+                    {
+                        this.list = [];
+                        that.sty = { 'display': 'none' }
+                    }
+                    else if (ev.keyCode != 13 && ev.keyCode != 37 && ev.keyCode != 38 && ev.keyCode != 39 && ev.keyCode != 40)
+                    {
+                      //读服务器数据
+                      //  axios.get("http://www.example.com/sdf.html", {
+                      //      params: {
+                      //          keyword: that.keyword
+                      //      }
+                      //  })
+                      //.then(function (res) {
+                      //    that.list = JSON.parse(res.data);
+
+                      //    if (that.list.length > 0) {
+                      //        that.sty = { 'display': 'block' };
+                      //        that.nowindex = 0;
+                      //    }
+                      //    else {
+                      //        that.sty = { 'display': 'none' };
+                      //    }
+                        //});
+
+
+				//读本地数据
+                          axios.get("data/username.json", {
+                              params: {
+                                  keyword: that.keyword
+                              }
+                          })
+                        .then(function (res) {
+                          
+                            var l = [];
+                            var p = res.data;
+                            for (var i = 0; i < p.length; i++) {
+                                if (p[i].UserName.indexOf(that.keyword)>-1) {
+                                    l.push(p[i]);
+                                }
+                            }
+                            that.list = l;
+
+                            if (that.list.length > 0) {
+                                that.sty = { 'display': 'block' };
+                                that.nowindex = 0;
+                            }
+                            else {
+                                that.sty = { 'display': 'none' };
+                            }
+                        });
+
+
+
+
+
+                    }
+                 
+                },300)
+
+
+
+
+            }
+        });
+    </script>
+</body>
+</html>
